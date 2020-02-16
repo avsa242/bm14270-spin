@@ -55,6 +55,13 @@ PUB Stop
 ' Put any other housekeeping code here required/recommended by your device before shutting down
     i2c.terminate
 
+PUB CurrentData
+' Read current measurement
+'   Returns: ADC word from -8192 to 8191
+    readReg(core#DATA, 2, @result)
+    if result > 8191
+        result := result - 57344
+
 PUB CurrentDataRate(Hz) | tmp
 ' Set measurement output data rate, in Hz
 '   Valid values: 20, 100, 200, 1000
@@ -115,10 +122,6 @@ PUB Powered(enabled) | tmp
     writeReg(core#CNTL1, 1, @tmp)
     time.MSleep(2)
 
-PUB ReadCurrent
-' Read current measurement
-    readReg(core#DATA, 2, @result)
-
 PUB Ready
 ' Flag indicating measured data is ready
 '   Returns: TRUE (-1) if measurement ready, FALSE (0) otherwise
@@ -135,6 +138,10 @@ PUB Reset | tmp
     tmp := $00
     tmp := 1 << core#FLD_RSTB_LV
     writeReg(core#CNTL4_MSB, 1, @tmp)
+
+PUB Teslas
+' Reads the current output register and scales the output to nanoTeslas
+    result := CurrentData * 45
 
 PRI readReg(reg, nr_bytes, buff_addr) | cmd_packet, tmp
 '' Read num_bytes from the slave device into the address stored in buff_addr
