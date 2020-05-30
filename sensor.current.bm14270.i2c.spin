@@ -20,6 +20,8 @@ CON
     DEF_HZ              = 400_000
     I2C_MAX_FREQ        = core#I2C_MAX_FREQ
 
+    OFFSET              = $23
+
 ' Operating modes
     CONT                = 0
     SINGLE              = 1
@@ -32,7 +34,6 @@ OBJ
     i2c     : "com.i2c"
     core    : "core.con.bm14270.spin"
     time    : "time"
-    types   : "system.types"
 
 PUB Null
 'This is not a top-level object
@@ -59,8 +60,9 @@ PUB CurrentData
 ' Read current measurement
 '   Returns: ADC word from -8192 to 8191
     readReg(core#DATA, 2, @result)
-    if result > 8191
-        result := result - 57344
+    result += OFFSET
+    if result > 32767
+        result := result - 65536
 
 PUB CurrentDataRate(Hz) | tmp
 ' Set measurement output data rate, in Hz
