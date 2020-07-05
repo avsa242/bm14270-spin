@@ -20,8 +20,6 @@ CON
     DEF_HZ              = 400_000
     I2C_MAX_FREQ        = core#I2C_MAX_FREQ
 
-    OFFSET              = $23
-
 ' Operating modes
     CONT                = 0
     SINGLE              = 1
@@ -60,9 +58,7 @@ PUB CurrentData
 ' Read current measurement
 '   Returns: ADC word from -8192 to 8191
     readReg(core#DATA, 2, @result)
-    result += OFFSET
-    if result > 32767
-        result := result - 65536
+    ~~result
 
 PUB CurrentDataRate(Hz) | tmp
 ' Set measurement output data rate, in Hz
