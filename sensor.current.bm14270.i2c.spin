@@ -17,7 +17,7 @@ CON
 
     DEF_SCL             = 28
     DEF_SDA             = 29
-    DEF_HZ              = 400_000
+    DEF_HZ              = 100_000
     I2C_MAX_FREQ        = core#I2C_MAX_FREQ
 
 ' Operating modes
@@ -33,22 +33,23 @@ OBJ
     core    : "core.con.bm14270.spin"
     time    : "time"
 
-PUB Null
+PUB Null{}
 'This is not a top-level object
 
-PUB Start: okay                                                 'Default to "standard" Propeller I2C pins and 400kHz
+PUB Start{}: okay
+' Start using "standard" Propeller I2C pins and 100kHz
 
-    okay := Startx (DEF_SCL, DEF_SDA, DEF_HZ)
+    okay := startx(DEF_SCL, DEF_SDA, DEF_HZ)
 
 PUB Startx(SCL_PIN, SDA_PIN, I2C_HZ): okay
-
+' Start using custom settings
     if lookdown(SCL_PIN: 0..31) and lookdown(SDA_PIN: 0..31)
         if I2C_HZ =< core#I2C_MAX_FREQ
-            if okay := i2c.setupx(SCL_PIN, SDA_PIN, I2C_HZ)    'I2C Object Started?
+            if okay := i2c.setupx(SCL_PIN, SDA_PIN, I2C_HZ)
                 time.msleep(1)
-                if i2c.present(SLAVE_WR)                       'Response from device?
+                if i2c.present(SLAVE_WR)        ' check device bus presence
                     return okay
-    return FALSE                                                'If we got here, something went wrong
+    return FALSE                                ' something above failed
 
 PUB Stop{}
 ' Put any other housekeeping code here required/recommended by your device before shutting down
@@ -110,9 +111,9 @@ PUB Powered(enabled) | tmp
 '   Any other value polls the chip and returns the current setting
     tmp := $00
     readreg(core#CNTL1, 1, @tmp)
-    case ||enabled
+    case ||(enabled)
         0, 1:
-            enabled := ||enabled << core#PC1
+            enabled := ||(enabled) << core#PC1
         other:
             return ((tmp >> core#PC1) & 1) == 1
 
