@@ -34,7 +34,7 @@ CON
         PC1_MASK        = (1 << PC1) ^ CNTL1_MASK
         RST_LV_MASK     = (1 << RST_LV) ^ CNTL1_MASK
         ODR_MASK        = (ODR_BITS << ODR) ^ CNTL1_MASK
-        FS1_MASK        = 1 ^ CNTL1_MASK
+        FS1_MASK        = (1 << FS1) ^ CNTL1_MASK
 
     CNTL2               = $1C
     CNTL2_MASK          = $08

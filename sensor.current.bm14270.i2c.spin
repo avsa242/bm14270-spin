@@ -55,6 +55,17 @@ PUB Stop{}
 ' Put any other housekeeping code here required/recommended by your device before shutting down
     i2c.terminate{}
 
+PUB Defaults{}
+' Factory default settings
+
+PUB Defaults_Active{}
+' Like Defaults(), but sensor powered on
+    defaults{}
+    powered(TRUE)
+    reset{}
+    opmode(CONT)
+    currentdatarate(20)
+
 PUB CurrentData{}: i_adc
 ' Read current measurement
 '   Returns: ADC word from -8192 to 8191
