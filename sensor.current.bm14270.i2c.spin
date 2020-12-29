@@ -5,7 +5,7 @@
     Description: Driver for the Rohm Semiconductor BM14270 current sensor
     Copyright (c) 2020
     Started Feb 15, 2020
-    Updated Feb 15, 2020
+    Updated Dec 29, 2020
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -68,19 +68,19 @@ PUB CurrentDataRate(Hz) | tmp
     readReg(core#CNTL1, 1, @tmp)
     case Hz
         20, 100, 200, 1000:
-            Hz := lookdownz(Hz: 20, 100, 200, 1000) << core#FLD_ODR
+            Hz := lookdownz(Hz: 20, 100, 200, 1000) << core#ODR
         OTHER:
-            tmp := (tmp >> core#FLD_ODR) & core#BITS_ODR
+            tmp := (tmp >> core#ODR) & core#ODR_BITS
             result := lookupz(tmp: 20, 100, 200, 1000)
             return
 
-    tmp &= core#MASK_ODR
+    tmp &= core#ODR_MASK
     tmp := (tmp | Hz) & core#CNTL1_MASK
     writeReg(core#CNTL1, 1, @tmp)
 
 PUB Measure | tmp
 ' Trigger a measurement
-    tmp := 1 << core#FLD_FORCE
+    tmp := 1 << core#FORCE
     writeReg(core#CNTL3, 1, @tmp)
 
 PUB OpMode(mode) | tmp
@@ -93,12 +93,12 @@ PUB OpMode(mode) | tmp
     readReg(core#CNTL1, 1, @tmp)
     case mode
         CONT, SINGLE:
-            mode := mode << core#FLD_FS1
+            mode := mode << core#FS1
         OTHER:
-            result := (tmp >> core#FLD_FS1)
+            result := (tmp >> core#FS1) & 1
             return
 
-    tmp &= core#MASK_FS1
+    tmp &= core#FS1_MASK
     tmp := (tmp | mode) & core#CNTL1_MASK
     writeReg(core#CNTL1, 1, @tmp)
 
@@ -112,10 +112,11 @@ PUB Powered(enabled) | tmp
     readReg(core#CNTL1, 1, @tmp)
     case ||enabled
         0, 1:
-            enabled := ||enabled << core#FLD_PC1
+            enabled := ||enabled << core#PC1
         OTHER:
+            return ((tmp >> core#PC1) & 1) == 1
 
-    tmp &= core#MASK_PC1
+    tmp &= core#PC1_MASK
     tmp := (tmp | enabled) & core#CNTL1_MASK
     writeReg(core#CNTL1, 1, @tmp)
     time.MSleep(2)
@@ -124,17 +125,17 @@ PUB Ready
 ' Flag indicating measured data is ready
 '   Returns: TRUE (-1) if measurement ready, FALSE (0) otherwise
     readReg(core#STA1, 1, @result)
-    result := ((result >> core#FLD_RD_DRDY) & %1) * TRUE
+    result := ((result >> core#RD_DRDY) & %1) * TRUE
 
 PUB Reset | tmp
 ' Reset the device
     tmp := $00
     readReg(core#CNTL1, 1, @tmp)
-    tmp &= core#MASK_RST_LV
+    tmp &= core#RST_LV_MASK
     writeReg(core#CNTL1, 1, @tmp)
 
     tmp := $00
-    tmp := 1 << core#FLD_RSTB_LV
+    tmp := 1 << core#RSTB_LV
     writeReg(core#CNTL4_MSB, 1, @tmp)
 
 PUB Teslas
