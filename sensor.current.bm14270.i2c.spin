@@ -55,93 +55,88 @@ PUB Stop{}
 ' Put any other housekeeping code here required/recommended by your device before shutting down
     i2c.terminate{}
 
-PUB CurrentData{}
+PUB CurrentData{}: i_adc
 ' Read current measurement
 '   Returns: ADC word from -8192 to 8191
-    readreg(core#DATA, 2, @result)
-    ~~result
+    readreg(core#DATA, 2, @i_adc)
+    ~~i_adc
 
-PUB CurrentDataRate(Hz) | tmp
+PUB CurrentDataRate(rate): curr_rate
 ' Set measurement output data rate, in Hz
 '   Valid values: 20, 100, 200, 1000
 '   Any other value polls the chip and returns the current setting
-    tmp := $00
-    readreg(core#CNTL1, 1, @tmp)
-    case Hz
+    curr_rate := 0
+    readreg(core#CNTL1, 1, @curr_rate)
+    case rate
         20, 100, 200, 1000:
-            Hz := lookdownz(Hz: 20, 100, 200, 1000) << core#ODR
+            rate := lookdownz(rate: 20, 100, 200, 1000) << core#ODR
         other:
-            tmp := (tmp >> core#ODR) & core#ODR_BITS
-            result := lookupz(tmp: 20, 100, 200, 1000)
-            return
+            curr_rate := (curr_rate >> core#ODR) & core#ODR_BITS
+            return lookupz(curr_rate: 20, 100, 200, 1000)
 
-    tmp &= core#ODR_MASK
-    tmp := (tmp | Hz) & core#CNTL1_MASK
-    writereg(core#CNTL1, 1, @tmp)
+    rate := ((curr_rate & core#ODR_MASK) | rate) & core#CNTL1_MASK
+    writereg(core#CNTL1, 1, @curr_rate)
 
 PUB Measure{} | tmp
 ' Trigger a measurement
     tmp := 1 << core#FORCE
     writereg(core#CNTL3, 1, @tmp)
 
-PUB OpMode(mode) | tmp
+PUB OpMode(mode): curr_mode
 ' Set operation mode
 '   Valid values:
 '       CONT (0): Continuous measurement mode
 '       SINGLE (1): Single-shot measurement mode
 '   Any other value polls the chip and returns the current setting
-    tmp := $00
-    readreg(core#CNTL1, 1, @tmp)
+    curr_mode := 0
+    readreg(core#CNTL1, 1, @curr_mode)
     case mode
         CONT, SINGLE:
             mode := mode << core#FS1
         other:
-            result := (tmp >> core#FS1) & 1
-            return
+            return (curr_mode >> core#FS1) & 1
 
-    tmp &= core#FS1_MASK
-    tmp := (tmp | mode) & core#CNTL1_MASK
-    writereg(core#CNTL1, 1, @tmp)
+    mode := ((curr_mode & core#FS1_MASK) | mode) & core#CNTL1_MASK
+    writereg(core#CNTL1, 1, @mode)
 
-PUB Powered(enabled) | tmp
+PUB Powered(state): curr_state
 ' Enable device power
 '   Valid values:
 '       TRUE (-1 or 1): Power on
 '       FALSE (0): Power off
 '   Any other value polls the chip and returns the current setting
-    tmp := $00
-    readreg(core#CNTL1, 1, @tmp)
-    case ||(enabled)
+    curr_state := 0
+    readreg(core#CNTL1, 1, @curr_state)
+    case ||(state)
         0, 1:
-            enabled := ||(enabled) << core#PC1
+            state := ||(state) << core#PC1
         other:
-            return ((tmp >> core#PC1) & 1) == 1
+            return ((curr_state >> core#PC1) & 1) == 1
 
-    tmp &= core#PC1_MASK
-    tmp := (tmp | enabled) & core#CNTL1_MASK
-    writereg(core#CNTL1, 1, @tmp)
+    state := ((curr_state & core#PC1_MASK) | state) & core#CNTL1_MASK
+    writereg(core#CNTL1, 1, @state)
     time.msleep(2)
 
-PUB Ready{}
+PUB Ready{}: flag
 ' Flag indicating measured data is ready
 '   Returns: TRUE (-1) if measurement ready, FALSE (0) otherwise
-    readreg(core#STA1, 1, @result)
-    result := ((result >> core#RD_DRDY) & %1) * TRUE
+    readreg(core#STA1, 1, @flag)
+    return ((flag >> core#RD_DRDY) & 1) == 1
 
 PUB Reset{} | tmp
 ' Reset the device
-    tmp := $00
+    tmp := 0
     readreg(core#CNTL1, 1, @tmp)
     tmp &= core#RST_LV_MASK
     writereg(core#CNTL1, 1, @tmp)
 
-    tmp := $00
+    tmp := 0
     tmp := 1 << core#RSTB_LV
     writereg(core#CNTL4_MSB, 1, @tmp)
 
-PUB Teslas{}
+PUB Teslas{}: t
 ' Reads the current output register and scales the output to nanoTeslas
-    result := currentdata{} * 45
+    return currentdata{} * 45
 
 PRI readReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
 ' Read nr_bytes from slave device into ptr_buff
