@@ -44,20 +44,20 @@ PUB Startx(SCL_PIN, SDA_PIN, I2C_HZ): okay
 
     if lookdown(SCL_PIN: 0..31) and lookdown(SDA_PIN: 0..31)
         if I2C_HZ =< core#I2C_MAX_FREQ
-            if okay := i2c.setupx (SCL_PIN, SDA_PIN, I2C_HZ)    'I2C Object Started?
-                time.MSleep (1)
-                if i2c.present (SLAVE_WR)                       'Response from device?
+            if okay := i2c.setupx(SCL_PIN, SDA_PIN, I2C_HZ)    'I2C Object Started?
+                time.msleep(1)
+                if i2c.present(SLAVE_WR)                       'Response from device?
                     return okay
     return FALSE                                                'If we got here, something went wrong
 
-PUB Stop
+PUB Stop{}
 ' Put any other housekeeping code here required/recommended by your device before shutting down
-    i2c.terminate
+    i2c.terminate{}
 
-PUB CurrentData
+PUB CurrentData{}
 ' Read current measurement
 '   Returns: ADC word from -8192 to 8191
-    readReg(core#DATA, 2, @result)
+    readreg(core#DATA, 2, @result)
     ~~result
 
 PUB CurrentDataRate(Hz) | tmp
@@ -65,23 +65,23 @@ PUB CurrentDataRate(Hz) | tmp
 '   Valid values: 20, 100, 200, 1000
 '   Any other value polls the chip and returns the current setting
     tmp := $00
-    readReg(core#CNTL1, 1, @tmp)
+    readreg(core#CNTL1, 1, @tmp)
     case Hz
         20, 100, 200, 1000:
             Hz := lookdownz(Hz: 20, 100, 200, 1000) << core#ODR
-        OTHER:
+        other:
             tmp := (tmp >> core#ODR) & core#ODR_BITS
             result := lookupz(tmp: 20, 100, 200, 1000)
             return
 
     tmp &= core#ODR_MASK
     tmp := (tmp | Hz) & core#CNTL1_MASK
-    writeReg(core#CNTL1, 1, @tmp)
+    writereg(core#CNTL1, 1, @tmp)
 
-PUB Measure | tmp
+PUB Measure{} | tmp
 ' Trigger a measurement
     tmp := 1 << core#FORCE
-    writeReg(core#CNTL3, 1, @tmp)
+    writereg(core#CNTL3, 1, @tmp)
 
 PUB OpMode(mode) | tmp
 ' Set operation mode
@@ -90,17 +90,17 @@ PUB OpMode(mode) | tmp
 '       SINGLE (1): Single-shot measurement mode
 '   Any other value polls the chip and returns the current setting
     tmp := $00
-    readReg(core#CNTL1, 1, @tmp)
+    readreg(core#CNTL1, 1, @tmp)
     case mode
         CONT, SINGLE:
             mode := mode << core#FS1
-        OTHER:
+        other:
             result := (tmp >> core#FS1) & 1
             return
 
     tmp &= core#FS1_MASK
     tmp := (tmp | mode) & core#CNTL1_MASK
-    writeReg(core#CNTL1, 1, @tmp)
+    writereg(core#CNTL1, 1, @tmp)
 
 PUB Powered(enabled) | tmp
 ' Enable device power
@@ -109,66 +109,66 @@ PUB Powered(enabled) | tmp
 '       FALSE (0): Power off
 '   Any other value polls the chip and returns the current setting
     tmp := $00
-    readReg(core#CNTL1, 1, @tmp)
+    readreg(core#CNTL1, 1, @tmp)
     case ||enabled
         0, 1:
             enabled := ||enabled << core#PC1
-        OTHER:
+        other:
             return ((tmp >> core#PC1) & 1) == 1
 
     tmp &= core#PC1_MASK
     tmp := (tmp | enabled) & core#CNTL1_MASK
-    writeReg(core#CNTL1, 1, @tmp)
-    time.MSleep(2)
+    writereg(core#CNTL1, 1, @tmp)
+    time.msleep(2)
 
-PUB Ready
+PUB Ready{}
 ' Flag indicating measured data is ready
 '   Returns: TRUE (-1) if measurement ready, FALSE (0) otherwise
-    readReg(core#STA1, 1, @result)
+    readreg(core#STA1, 1, @result)
     result := ((result >> core#RD_DRDY) & %1) * TRUE
 
-PUB Reset | tmp
+PUB Reset{} | tmp
 ' Reset the device
     tmp := $00
-    readReg(core#CNTL1, 1, @tmp)
+    readreg(core#CNTL1, 1, @tmp)
     tmp &= core#RST_LV_MASK
-    writeReg(core#CNTL1, 1, @tmp)
+    writereg(core#CNTL1, 1, @tmp)
 
     tmp := $00
     tmp := 1 << core#RSTB_LV
-    writeReg(core#CNTL4_MSB, 1, @tmp)
+    writereg(core#CNTL4_MSB, 1, @tmp)
 
-PUB Teslas
+PUB Teslas{}
 ' Reads the current output register and scales the output to nanoTeslas
-    result := CurrentData * 45
+    result := currentdata{} * 45
 
-PRI readReg(reg, nr_bytes, buff_addr) | cmd_packet, tmp
-'' Read num_bytes from the slave device into the address stored in buff_addr
-    case reg                                                    'Basic register validation
-        $0F, $10, $11, $1B, $1C, $1D:
-            cmd_packet.byte[0] := SLAVE_WR
-            cmd_packet.byte[1] := reg
-            i2c.start
-            i2c.wr_block (@cmd_packet, 2)
-            i2c.start
-            i2c.write (SLAVE_RD)
-            i2c.rd_block (buff_addr, nr_bytes, TRUE)
-            i2c.stop
-        OTHER:
+PRI readReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
+' Read nr_bytes from slave device into ptr_buff
+    case reg_nr
+        core#STA1, core#DATA, core#CNTL1, core#CNTL2, core#CNTL3:
+            cmd_pkt.byte[0] := SLAVE_WR
+            cmd_pkt.byte[1] := reg_nr
+            i2c.start{}
+            i2c.wr_block(@cmd_pkt, 2)
+            i2c.start{}
+            i2c.write(SLAVE_RD)
+            i2c.rd_block(ptr_buff, nr_bytes, TRUE)
+            i2c.stop{}
+        other:
             return
 
-PRI writeReg(reg, nr_bytes, buff_addr) | cmd_packet, tmp
-'' Write num_bytes to the slave device from the address stored in buff_addr
-    case reg                                                    'Basic register validation
-        $1B, $1C, $1D, $5C, $5D:
-            cmd_packet.byte[0] := SLAVE_WR
-            cmd_packet.byte[1] := reg
-            i2c.start
-            i2c.wr_block (@cmd_packet, 2)
+PRI writeReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
+' Write nr_bytes from ptr_buff to slave device
+    case reg_nr
+        core#CNTL1, core#CNTL2, core#CNTL3, core#CNTL4_MSB:
+            cmd_pkt.byte[0] := SLAVE_WR
+            cmd_pkt.byte[1] := reg_nr
+            i2c.start{}
+            i2c.wr_block(@cmd_pkt, 2)
             repeat tmp from 0 to nr_bytes-1
-                i2c.write (byte[buff_addr][tmp])
-            i2c.stop
-        OTHER:
+                i2c.write(byte[ptr_buff][tmp])
+            i2c.stop{}
+        other:
             return
 
 
