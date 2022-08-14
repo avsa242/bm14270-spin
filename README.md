@@ -8,7 +8,7 @@ This is a P8X32A/Propeller driver object for the Rohm Semiconductor BM14270 magn
 ## Salient Features
 
 * I2C connection at up to 400kHz
-* Read current measurement
+* Read current measurement (unverified)
 * Single-shot or continuous measurement operating modes
 * Set measurement data rate
 
@@ -16,26 +16,28 @@ This is a P8X32A/Propeller driver object for the Rohm Semiconductor BM14270 magn
 
 P1/SPIN1:
 * spin-standard-library
-* 1 extra core/cog for the PASM I2C driver
+* 1 extra core/cog for the PASM I2C engine
+* sensor.power.common.spinh (provided by spin-standard-library)
 
 P2/SPIN2:
 * p2-spin-standard-library
 
 ## Compiler Compatibility
 
-* P1/SPIN1: OpenSpin (tested with 1.00.81)
-* P2/SPIN2: FastSpin (tested with 4.1.10-beta)
-* ~~BST~~ (incompatible - no preprocessor)
-* ~~Propeller Tool~~ (incompatible - no preprocessor)
-* ~~PNut~~ (incompatible - no preprocessor)
+| Processor | Language | Compiler               | Backend     | Status                |
+|-----------|----------|------------------------|-------------|-----------------------|
+| P1        | SPIN1    | FlexSpin (5.9.14-beta) | Bytecode    | OK                    |
+| P1        | SPIN1    | FlexSpin (5.9.14-beta) | Native code | OK                    |
+| P1        | SPIN1    | OpenSpin (1.00.81)     | Bytecode    | Untested (deprecated) |
+| P2        | SPIN2    | FlexSpin (5.9.14-beta) | NuCode      | Not yet implemented   |
+| P2        | SPIN2    | FlexSpin (5.9.14-beta) | Native code | Not yet implemented   |
+| P1        | SPIN1    | Brad's Spin Tool (any) | Bytecode    | Unsupported           |
+| P1, P2    | SPIN1, 2 | Propeller Tool (any)   | Bytecode    | Unsupported           |
+| P1, P2    | SPIN1, 2 | PNut (any)             | Bytecode    | Unsupported           |
 
 ## Limitations
 
 * Very early in development - may malfunction, or outright fail to build
 * Doesn't support alerts/interrupts
-* No scaled measurement (i.e., amperes) yet
+* Current measurement unverified
 
-## TODO
-
-- [ ] Implement scaled measurements
-- [ ] Implement support for alerts/interrupts
