@@ -67,7 +67,7 @@ PUB stop{}
 PUB defaults{}
 ' Factory default settings
 
-PUB Preset_Active{}
+PUB preset_active{}
 ' Like Defaults(), but sensor powered on
 '    powered(TRUE)
     reset{}
@@ -186,7 +186,7 @@ PUB teslas{}: t
 PUB voltage_data(): v
 ' dummy method
 
-PRI readReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
+PRI readreg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
 ' Read nr_bytes from slave device into ptr_buff
     case reg_nr
         core#STA1, core#DATA, core#CNTL1, core#CNTL2, core#CNTL3:
@@ -202,7 +202,7 @@ PRI readReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
         other:
             return
 
-PRI writeReg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
+PRI writereg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
 ' Write nr_bytes from ptr_buff to slave device
     case reg_nr
         core#CNTL1, core#CNTL2, core#CNTL3, core#CNTL4_MSB:
