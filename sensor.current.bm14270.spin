@@ -5,7 +5,7 @@
     Description: Driver for the Rohm Semiconductor BM14270 current sensor
     Copyright (c) 2022
     Started Feb 15, 2020
-    Updated Aug 14, 2022
+    Updated Sep 24, 2022
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -108,7 +108,7 @@ PUB data_rate(rate): curr_rate
     rate := ((curr_rate & core#ODR_MASK) | rate)
     writereg(core#CNTL1, 1, @curr_rate)
 
-PUB data_ready{}: flag
+PUB data_rdy{}: flag
 ' Flag indicating measured data is ready
 '   Returns: TRUE (-1) if measurement ready, FALSE (0) otherwise
     flag := 0
