@@ -35,7 +35,6 @@ OBJ
     cfg : "core.con.boardcfg.flip"
     ser : "com.serial.terminal.ansi"
     time: "time"
-    str : "string"
     pwr : "sensor.current.bm14270"
 
 PUB main{} | val

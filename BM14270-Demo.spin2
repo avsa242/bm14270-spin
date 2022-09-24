@@ -34,7 +34,6 @@ OBJ
 
     cfg : "core.con.boardcfg.p2eval"
     ser : "com.serial.terminal.ansi"
-    str : "string"
     pwr : "sensor.current.bm14270"
 
 PUB main() | val
