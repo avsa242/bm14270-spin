@@ -32,7 +32,7 @@ CON
 
 OBJ
 
-    cfg : "core.con.boardcfg.p2eval"
+    cfg : "boardcfg.p2eval"
     ser : "com.serial.terminal.ansi"
     pwr : "sensor.current.bm14270"
 
@@ -45,7 +45,7 @@ PUB main() | val
     pwr.int_mask(pwr.DRDY)
     repeat
         pwr.measure()
-        repeat until pwr.data_ready()
+        repeat until pwr.data_rdy()
         val := pwr.current()
         ser.position(0, 4)
         ser.printf(@"%d.%06.6d", (val / SCALE), abs(val // SCALE))

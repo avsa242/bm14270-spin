@@ -5,7 +5,7 @@
     Description: Demo of the BM14270 driver
     Copyright (c) 2022
     Started Feb 15, 2020
-    Updated Sep 19, 2022
+    Updated Oct 16, 2022
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -32,7 +32,7 @@ CON
 
 OBJ
 
-    cfg : "core.con.boardcfg.flip"
+    cfg : "boardcfg.flip"
     ser : "com.serial.terminal.ansi"
     time: "time"
     pwr : "sensor.current.bm14270"
@@ -46,7 +46,7 @@ PUB main{} | val
     pwr.int_mask(pwr#DRDY)
     repeat
         pwr.measure{}
-        repeat until pwr.data_ready{}
+        repeat until pwr.data_rdy{}
         val := pwr.current{}
         ser.position(0, 4)
         ser.printf2(string("%d.%06.6d"), (val / SCALE), ||(val // SCALE))
