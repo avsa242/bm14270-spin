@@ -5,7 +5,7 @@
     Description: Demo of the BM14270 driver
     Copyright (c) 2022
     Started Feb 15, 2020
-    Updated Oct 16, 2022
+    Updated Nov 17, 2022
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -48,9 +48,9 @@ PUB main{} | val
         pwr.measure{}
         repeat until pwr.data_rdy{}
         val := pwr.current{}
-        ser.position(0, 4)
+        ser.pos_xy(0, 4)
         ser.printf2(string("%d.%06.6d"), (val / SCALE), ||(val // SCALE))
-        ser.clearline{}
+        ser.clear_line{}
 
 PUB setup{}
 

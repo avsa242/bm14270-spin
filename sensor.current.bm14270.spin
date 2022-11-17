@@ -183,7 +183,7 @@ PUB teslas{}: t
 ' Reads the current output register and scales the output to nanoTeslas
     return current_data{} * 45
 
-PUB voltage_data(): v
+PUB voltage_data{}: v
 ' dummy method
 
 PRI readreg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
