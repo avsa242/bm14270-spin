@@ -1,72 +1,62 @@
 {
-    --------------------------------------------
-    Filename: BM14270-Demo.spin
-    Author: Jesse Burt
-    Description: Demo of the BM14270 driver
-    Copyright (c) 2022
-    Started Feb 15, 2020
-    Updated Nov 17, 2022
-    See end of file for terms of use.
-    --------------------------------------------
+----------------------------------------------------------------------------------------------------
+    Filename:       BM14270-Demo.spin
+    Description:    Demo of the BM14270 driver
+    Author:         Jesse Burt
+    Started:        Feb 15, 2020
+    Updated:        Oct 19, 2024
+    Copyright (c) 2024 - See end of file for terms of use.
+----------------------------------------------------------------------------------------------------
 }
 
 CON
 
-    _clkmode    = cfg#_clkmode
-    _xinfreq    = cfg#_xinfreq
-
-' -- User-modifiable constants
-    LED         = cfg#LED1
-    SER_BAUD    = 115_200
-
-    SCL_PIN     = 28
-    SDA_PIN     = 29
-    I2C_FREQ    = 400_000
-    ADDR_BITS   = 0
-
-    OFFSET      = 30 * SCALE
-    GAIN        = 120
-' --
+    _clkmode    = xtal1+pll16x
+    _xinfreq    = 5_000_000
 
     SCALE       = 1_000_000
 
+
 OBJ
 
-    cfg : "boardcfg.flip"
-    ser : "com.serial.terminal.ansi"
-    time: "time"
-    pwr : "sensor.current.bm14270"
+    time:   "time"
+    ser:    "com.serial.terminal.ansi" | SER_BAUD=115_200
+    sensor: "sensor.current.bm14270" | SCL=28, SDA=29, I2C_FREQ=100_000, I2C_ADDR=0
 
-PUB main{} | val
 
-    setup{}
-    pwr.powered(true)
-    pwr.data_rate(20)
-    pwr.reset{}
-    pwr.int_mask(pwr#DRDY)
+PUB main() | val
+
+    setup()
+    sensor.preset_single()                      ' single-shot measurement mode
+    sensor.int_mask(sensor.DRDY)                ' trigger interrupt on data ready
+
     repeat
-        pwr.measure{}
-        repeat until pwr.data_rdy{}
-        val := pwr.current{}
+        sensor.measure()                        ' trigger a measurement
+        repeat                                  ' wait for it to complete
+        until sensor.data_rdy()
+        val := sensor.current()
         ser.pos_xy(0, 4)
-        ser.printf2(string("%d.%06.6d"), (val / SCALE), ||(val // SCALE))
-        ser.clear_line{}
+        ser.printf2(@"%d.%06.6d", (val / SCALE), ||(val // SCALE))
+        ser.clear_line()
 
-PUB setup{}
 
-    ser.start(SER_BAUD)
+PUB setup()
+
+    ser.start()
     time.msleep(30)
-    ser.clear{}
-    ser.strln(string("Serial terminal started"))
-    if pwr.startx(SCL_PIN, SDA_PIN, I2C_FREQ, ADDR_BITS)
-        ser.strln(string("BM14270 driver started"))
+    ser.clear()
+    ser.strln(@"Serial terminal started")
+
+    if ( sensor.start() )
+        ser.strln(@"BM14270 driver started")
     else
-        ser.strln(string("BM14270 driver failed to start - halting"))
+        ser.strln(@"BM14270 driver failed to start - halting")
         repeat
+
 
 DAT
 {
-Copyright 2022 Jesse Burt
+Copyright 2024 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,

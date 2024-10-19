@@ -1,13 +1,12 @@
 {
-    --------------------------------------------
-    Filename: core.con.bm14270.spin
-    Author: Jesse Burt
-    Description: BM14270-specific constants
-    Copyright (c) 2022
-    Started Feb 15, 2020
-    Updated Aug 14, 2022
-    See end of file for terms of use.
-    --------------------------------------------
+----------------------------------------------------------------------------------------------------
+    Filename:       core.con.bm14270.spin
+    Description:    BM14270-specific constants
+    Author:         Jesse Burt
+    Started:        Feb 15, 2020
+    Updated:        Oct 19, 2024
+    Copyright (c) 2024 - See end of file for terms of use.
+----------------------------------------------------------------------------------------------------
 }
 
 CON
@@ -51,12 +50,14 @@ CON
     CNTL4_MSB       = $5D
         RSTB_LV     = 8
 
-PUB null{}
+
+PUB null()
 ' This is not a top-level object
+
 
 DAT
 {
-Copyright 2022 Jesse Burt
+Copyright 2024 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
