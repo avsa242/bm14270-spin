@@ -122,8 +122,7 @@ PUB adc2watts(adc_word)
 PUB current_data(): d
 ' Read current measurement
 '   Returns: ADC word from -8192 to 8191
-    d := 0
-    readreg(core.DATA, 2, @d)
+    d := readreg(core.DATA, 2)
     d signx= 15
 
 
@@ -131,13 +130,12 @@ PUB data_rate(rate=-2): c
 ' Set measurement output data rate, in Hz
 '   Valid values: 20, 100, 200, 1000
 '   Any other value polls the chip and returns the current setting
-    c := 0
-    readreg(core.CNTL1, 1, @c)
+    c := readreg(core.CNTL1)
     case rate
         20, 100, 200, 1000:
             rate := lookdownz(rate: 20, 100, 200, 1000) << core.ODR
             rate := ((c & core.ODR_MASK) | rate)
-            writereg(core.CNTL1, 1, @c)
+            writereg(core.CNTL1, c)
         other:
             c := (c >> core.ODR) & core.ODR_BITS
             return lookupz(c: 20, 100, 200, 1000)
@@ -146,9 +144,7 @@ PUB data_rate(rate=-2): c
 PUB data_rdy(): f
 ' Flag indicating measured data is ready
 '   Returns: TRUE (-1) if measurement ready, FALSE (0) otherwise
-    f := 0
-    readreg(core.STA1, 1, @f)
-    return ( ( (f >> core.RD_DRDY) & 1) == 1)
+    return ( ( ( readreg(core.STA1) >> core.RD_DRDY) & 1) == 1)
 
 
 PUB int_mask(mask=-2): c
@@ -156,17 +152,16 @@ PUB int_mask(mask=-2): c
 '   Valid values:
 '       Bits:
 '       3: data ready
+'   Any other value polls the chip and returns the current setting
     if ( mask == core.DRDY )
-        writereg(core.CNTL2, 1, @mask)
+        writereg(core.CNTL2, mask)
     else
-        c := 0
-        readreg(core.CNTL2, 1, @c)
+        return readreg(core.CNTL2)
 
 
-PUB measure() | tmp
+PUB measure()
 ' Trigger a measurement
-    tmp := 1 << core.FORCE
-    writereg(core.CNTL3, 1, @tmp)
+    writereg(core.CNTL3, (1 << core.FORCE) )
 
 
 PUB opmode(mode=-2): c
@@ -175,13 +170,12 @@ PUB opmode(mode=-2): c
 '       CONT (0): Continuous measurement mode
 '       SINGLE (1): Single-shot measurement mode
 '   Any other value polls the chip and returns the current setting
-    c := 0
-    readreg(core.CNTL1, 1, @c)
+    c := readreg(core.CNTL1)
     case mode
         CONT, SINGLE:
             mode := mode << core.FS1
             mode := ((c & core.FS1_MASK) | mode)
-            writereg(core.CNTL1, 1, @mode)
+            writereg(core.CNTL1, mode)
         other:
             return (c >> core.FS1) & 1
 
@@ -196,13 +190,12 @@ PUB powered(state=-2): c
 '       TRUE (-1 or 1): Power on
 '       FALSE (0): Power off
 '   Any other value polls the chip and returns the current setting
-    c := 0
-    readreg(core.CNTL1, 1, @c)
+    c := readreg(core.CNTL1)
     case abs(state)
         0, 1:
             state := abs(state) << core.PC1
             state := ((c & core.PC1_MASK) | state)
-            writereg(core.CNTL1, 1, @state)
+            writereg(core.CNTL1, state)
             waitms(2)
         other:
             return ( ( (c >> core.PC1) & 1) == 1)
@@ -210,13 +203,8 @@ PUB powered(state=-2): c
 
 PUB reset() | tmp
 ' Reset the device
-    tmp := 0
-    readreg(core.CNTL1, 1, @tmp)
-    tmp &= core.RST_LV_MASK
-    writereg(core.CNTL1, 1, @tmp)
-
-    tmp := (1 << core.RSTB_LV)
-    writereg(core.CNTL4_MSB, 1, @tmp)
+    writereg(core.CNTL1, (readreg(core.CNTL1) & core.RST_LV_MASK) )
+    writereg(core.CNTL4_MSB, 1, (1 << core.RSTB_LV) )
 
 
 PUB teslas(): t
@@ -228,8 +216,9 @@ PUB voltage_data(): v
 ' dummy method
 
 
-PRI readreg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt
+PRI readreg(reg_nr, nr_bytes=1): v | cmd_pkt
 ' Read nr_bytes from slave device into ptr_buff
+    v := 0
     case reg_nr
         core.STA1, core.DATA, core.CNTL1, core.CNTL2, core.CNTL3:
             cmd_pkt.byte[0] := (SLAVE_WR | _addr_bits)
@@ -239,13 +228,13 @@ PRI readreg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt
             i2c.stop()
             i2c.start()
             i2c.write(SLAVE_RD | _addr_bits)
-            i2c.rdblock_lsbf(ptr_buff, nr_bytes, TRUE)
+            i2c.rdblock_lsbf(@v, nr_bytes, TRUE)
             i2c.stop()
         other:
             return
 
 
-PRI writereg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
+PRI writereg(reg_nr, val, nr_bytes=1) | cmd_pkt
 ' Write nr_bytes from ptr_buff to slave device
     case reg_nr
         core.CNTL1, core.CNTL2, core.CNTL3, core.CNTL4_MSB:
@@ -253,8 +242,7 @@ PRI writereg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt, tmp
             cmd_pkt.byte[1] := reg_nr
             i2c.start()
             i2c.wrblock_lsbf(@cmd_pkt, 2)
-            repeat tmp from 0 to nr_bytes-1
-                i2c.write(byte[ptr_buff][tmp])
+            i2c.wrblock_lsbf(@val, nr_bytes)
             i2c.stop()
         other:
             return
