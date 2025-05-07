@@ -5,7 +5,7 @@
     Author:         Jesse Burt
     Started:        Feb 15, 2020
     Updated:        Oct 19, 2024
-    Copyright (c) 2024 - See end of file for terms of use.
+    Copyright (c) 2025 - See end of file for terms of use.
 ----------------------------------------------------------------------------------------------------
 }
 
@@ -36,7 +36,7 @@ PUB main() | val
         until sensor.data_rdy()
         val := sensor.current()
         ser.pos_xy(0, 4)
-        ser.printf2(@"%d.%06.6d", (val / SCALE), ||(val // SCALE))
+        ser.printf(@"%d.%06.6d", (val / SCALE), ||(val // SCALE))
         ser.clear_line()
 
 
@@ -56,7 +56,7 @@ PUB setup()
 
 DAT
 {
-Copyright 2024 Jesse Burt
+Copyright 2025 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
