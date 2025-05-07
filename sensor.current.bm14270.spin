@@ -4,8 +4,8 @@
     Description:    Driver for the Rohm Semiconductor BM14270 current sensor
     Author:         Jesse Burt
     Started:        Feb 15, 2020
-    Updated:        Oct 19, 2024
-    Copyright (c) 2024 - See end of file for terms of use.
+    Updated:        May 7, 2025
+    Copyright (c) 2025 - See end of file for terms of use.
 ----------------------------------------------------------------------------------------------------
 }
 
@@ -136,7 +136,7 @@ PUB data_rate(rate=-2): c
         20, 100, 200, 1000:
             rate := lookdownz(rate: 20, 100, 200, 1000) << core.ODR
             rate := ((c & core.ODR_MASK) | rate)
-            writereg(core.CNTL1, c)
+            writereg(core.CNTL1, rate)
         other:
             c := (c >> core.ODR) & core.ODR_BITS
             return lookupz(c: 20, 100, 200, 1000)
@@ -205,7 +205,7 @@ PUB powered(state=-2): c
 PUB reset() | tmp
 ' Reset the device
     writereg(core.CNTL1, (readreg(core.CNTL1) & core.RST_LV_MASK) )
-    writereg(core.CNTL4_MSB, 1, (1 << core.RSTB_LV) )
+    writereg(core.CNTL4_MSB, (1 << core.RSTB_LV) )
 
 
 PUB teslas(): t
@@ -251,7 +251,7 @@ PRI writereg(reg_nr, val, nr_bytes=1) | cmd_pkt
 
 DAT
 {
-Copyright 2024 Jesse Burt
+Copyright 2025 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
