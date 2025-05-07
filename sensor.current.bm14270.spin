@@ -120,7 +120,7 @@ PUB adc2watts(adc_word)
 ' dummy method
 
 
-PUB current_data(): d
+PUB current_data(ch=0): d
 ' Read current measurement
 '   Returns: ADC word from -8192 to 8191
     d := 0
@@ -187,7 +187,7 @@ PUB opmode(mode=-2): c
             return (c >> core.FS1) & 1
 
 
-PUB power_data(): p
+PUB power_data(ch=0): p
 ' dummy method
 
 
@@ -225,7 +225,7 @@ PUB teslas(): t
     return ( current_data() * 45 )
 
 
-PUB voltage_data(): v
+PUB voltage_data(ch=0): v
 ' dummy method
 
 
