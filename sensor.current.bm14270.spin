@@ -4,8 +4,8 @@
     Description:    Driver for the Rohm Semiconductor BM14270 current sensor
     Author:         Jesse Burt
     Started:        Feb 15, 2020
-    Updated:        May 7, 2025
-    Copyright (c) 2025 - See end of file for terms of use.
+    Updated:        Oct 5, 2026
+    Copyright (c) 2026 - See end of file for terms of use.
 ----------------------------------------------------------------------------------------------------
 }
 
@@ -32,6 +32,7 @@ CON
 
 VAR
 
+    long _amps_per_teslas
     byte _addr_bits
 
 
@@ -65,6 +66,7 @@ PUB startx(SCL_PIN, SDA_PIN, I2C_HZ, ADDR_BITS): status
             time.msleep(1)
             _addr_bits := (ADDR_BITS << 1)
             if ( i2c.present(SLAVE_WR | _addr_bits) )
+                set_amps_per_teslas(0_008000)
                 return status
     ' if this point is reached, something above failed
     ' Double check I/O pin assignments, connections, power
@@ -109,7 +111,7 @@ PUB preset_single()
 
 PUB adc2amps(adc_word): a
 ' Convert ADC word to current in (micro)amperes
-    return (adc_word * 0_008000)
+    return (adc_word * _amps_per_teslas)
 
 
 PUB adc2volts(adc_word)
@@ -208,6 +210,12 @@ PUB reset() | tmp
     writereg(core.CNTL4_MSB, (1 << core.RSTB_LV) )
 
 
+PUB set_amps_per_teslas(k)
+' Set scaling factor for converting magnetic field strength to current flow
+'   k:  scaling factor (=known constant current/teslas() output at that current)
+    _amps_per_teslas := k
+
+
 PUB teslas(): t
 ' Reads the current output register and scales the output to nanoTeslas
     return ( current_data() * 45 )
@@ -251,7 +259,7 @@ PRI writereg(reg_nr, val, nr_bytes=1) | cmd_pkt
 
 DAT
 {
-Copyright 2025 Jesse Burt
+Copyright 2026 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,

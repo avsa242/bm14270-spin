@@ -12,6 +12,7 @@ This is a P8X32A/Propeller driver object for the Rohm Semiconductor BM14270 magn
 * Read current measurement (unverified)
 * Single-shot or continuous measurement operating modes
 * Set measurement data rate
+* Set magnetic flux -> current scaling factor
 
 
 ## Requirements
@@ -30,17 +31,16 @@ P2/SPIN2:
 
 | Processor | Language | Compiler               | Backend      | Status                |
 |-----------|----------|------------------------|--------------|-----------------------|
-| P1        | SPIN1    | FlexSpin (6.9.4)       | Bytecode     | OK                    |
-| P1        | SPIN1    | FlexSpin (6.9.4)       | Native/PASM  | OK                    |
-| P2        | SPIN2    | FlexSpin (6.9.4)       | NuCode       | Untested              |
-| P2        | SPIN2    | FlexSpin (6.9.4)       | Native/PASM2 | OK                    |
+| P1        | SPIN1    | FlexSpin (7.7.1)       | Bytecode     | OK                    |
+| P1        | SPIN1    | FlexSpin (7.7.1)       | Native/PASM  | OK                    |
+| P2        | SPIN2    | FlexSpin (7.7.1)       | NuCode       | OK                    |
+| P2        | SPIN2    | FlexSpin (7.7.1)       | Native/PASM2 | OK                    |
 
 (other versions or toolchains not listed are __not supported__, and _may or may not_ work)
 
 
 ## Limitations
 
-* Very early in development - may malfunction, or outright fail to build
 * Doesn't support alerts/interrupts
 * Current measurement unverified
 
